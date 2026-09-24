@@ -1,0 +1,13 @@
+{
+  "name": "food-delivery-app",
+  "version": "1.0.0",
+  "description": "Full-Stack Food Delivery Application (MERN Stack)",
+  "scripts": {
+    "start:backend": "cd Backend && npm run dev",
+    "start:frontend": "cd Frontend && npm run dev",
+    "seed": "cd Backend && npm run seed"
+  },
+  "keywords": ["food-delivery", "mern", "react", "express", "mongodb"],
+  "author": "",
+  "license": "ISC"
+}
