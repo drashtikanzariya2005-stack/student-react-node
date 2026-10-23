@@ -64,7 +64,8 @@ const getFoodById = async (req, res) => {
 // ADD food (admin only)
 const addFood = async (req, res) => {
     try {
-        const { name, price, description, category, subCategory, dietType, restaurant, image } = req.body;
+        const { name, price, description, category, subCategory, dietType, restaurant, image ,preparationTime}
+         = req.body;
 
         if (!name || price === undefined || price === null || price === "") {
             return res.status(400).json({
@@ -115,7 +116,8 @@ const addFood = async (req, res) => {
             subCategory: subCategoryName,
             dietType: mainDoc.name,
             restaurant: restaurant || null,
-            image: image || ""
+            image: image || "",
+            preparationTime: Number(preparationTime) || 15
         });
 
         const savedFood = await newFood.save();
@@ -142,7 +144,9 @@ const updateFood = async (req, res) => {
         if (updateData.price !== undefined) {
             updateData.price = Number(updateData.price);
         }
-
+        if (updateData.preparationTime !== undefined) {
+            updateData.preparationTime = Number(updateData.preparationTime);
+        }
         const mainCategoryName = String(updateData.dietType || "").trim();
         const subCategoryName = String(updateData.category || updateData.subCategory || "").trim();
 

@@ -11,6 +11,7 @@ const emptyForm = {
   dietType: "Veg", // MAIN CATEGORY name
   restaurant: "",
   image: "",
+  preparationTime: 15,
 };
 
 function ManageFoods() {
@@ -146,6 +147,7 @@ function ManageFoods() {
         price: Number(form.price),
         category: form.category.trim(),
         subCategory: form.category.trim(),
+        preparationTime: Number(form.preparationTime),
       };
 
       if (editingId) {
@@ -182,6 +184,7 @@ function ManageFoods() {
       dietType: food.dietType || (mainCategories[0]?.name || "Veg"),
       restaurant: food.restaurant?._id || food.restaurant || "",
       image: food.image || "",
+      preparationTime: food.preparationTime || 15,
     });
     window.scrollTo({ top: 100, behavior: "smooth" });
   };
@@ -273,7 +276,21 @@ function ManageFoods() {
                 required
               />
             </div>
+              <div className="admin-input-group">
+              <label htmlFor="dish-preparation-time">
+                Preparation Time (minutes)
+              </label>
 
+              <input
+                id="dish-preparation-time"
+                type="number"
+                name="preparationTime"
+                min="1"
+                value={form.preparationTime}
+                onChange={handleChange}
+                placeholder="e.g. 25"
+              />
+            </div>
             {/* Main Category */}
             <div className="admin-input-group">
               <label htmlFor="dish-main-cat">Main Category (Diet / Cuisine)</label>

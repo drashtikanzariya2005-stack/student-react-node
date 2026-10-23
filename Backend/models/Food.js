@@ -16,19 +16,19 @@ const foodSchema = new mongoose.Schema(
             default: "",
             trim: true
         },
-        // Sub-category name (e.g. "Pizza", "Burgers", "Cold Drinks")
+     
         category: {
             type: String,
             default: "",
             trim: true
         },
-        // Legacy support / alias for category
+        
         subCategory: {
             type: String,
             default: "",
             trim: true
         },
-        // Main Category name (e.g. "Veg", "Non-Veg", "Jain", "Beverages", "Desserts", "Fast Food", etc.)
+        
         dietType: {
             type: String,
             default: "Veg",
@@ -43,7 +43,12 @@ const foodSchema = new mongoose.Schema(
             type: String,
             default: "",
             trim: true
-        }
+        },
+        preparationTime: {
+    type: Number,
+    default: 15,
+    min: 1
+}
     },
     {
         timestamps: true

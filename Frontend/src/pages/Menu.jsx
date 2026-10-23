@@ -343,6 +343,9 @@ function Menu() {
                         🏪 {food.restaurant.name}
                       </span>
                     ) : null}
+                    <span className="food-time-tag">
+  ⏱️ {food.preparationTime || 15} min
+</span>
                   </div>
 
                   <div className="food-card-footer">
