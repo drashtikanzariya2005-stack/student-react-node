@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const router = express.Router();
@@ -14,22 +15,49 @@ const {
   changePassword,
   forgotPassword,
   getAllUsers,
+  getUserStatus,
   updateUser,
   deleteUser,
 } = require("../controllers/userController");
 
+
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
+
 router.post("/logout", authMiddleware, logoutUser);
 
 router.get("/profile", authMiddleware, getProfile);
 router.put("/profile", authMiddleware, updateProfile);
 router.put("/change-password", authMiddleware, changePassword);
 
-// Admin-only user management
-router.get("/", authMiddleware, adminMiddleware, getAllUsers);
-router.put("/:id", authMiddleware, adminMiddleware, updateUser);
-router.delete("/:id", authMiddleware, adminMiddleware, deleteUser);
+
+router.get(
+  "/Status",
+  authMiddleware,
+  adminMiddleware,
+  getUserStatus
+);
+
+router.get(
+  "/",
+  authMiddleware,
+  adminMiddleware,
+  getAllUsers
+);
+
+router.put(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  updateUser
+);
+
+router.delete(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  deleteUser
+);
 
 module.exports = router;

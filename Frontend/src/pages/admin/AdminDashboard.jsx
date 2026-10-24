@@ -1,31 +1,81 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { adminApiFetch } from "../../api";
 
 const QUICK_LINKS = [
-  { to: "/admin/foods", title: "🍽️ Manage Menu & Dishes", text: "Add, update or remove items, prices, dietary tags and photos.", badge: "Catalog" },
-  { to: "/admin/categories", title: "📁 Categories & Cuisine", text: "Create and organize Main Categories and Subcategories.", badge: "Taxonomy" },
-  { to: "/admin/orders", title: "📦 Customer Orders", text: "Track live incoming orders, assign status & handle refunds.", badge: "Operations" },
-  { to: "/admin/restaurants", title: "🏪 Restaurant Partners", text: "Manage partner branches, ratings, and cuisines.", badge: "Vendors" },
-  { to: "/admin/offers", title: "🎁 Promo Offers & Coupons", text: "Create discount promo codes and limited time deals.", badge: "Marketing" },
-  { to: "/admin/users", title: "👥 User Management", text: "Manage registered customers and staff roles.", badge: "Accounts" },
-  { to: "/admin/messages", title: "✉️ Customer Inquiries", text: "Review and respond to contact feedback & inquiries.", badge: "Support" },
+  {
+    to: "/admin/foods",
+    title: "🍽️ Manage Menu & Dishes",
+    text: "Add, update or remove items, prices, dietary tags and photos.",
+    badge: "Catalog",
+  },
+  {
+    to: "/admin/categories",
+    title: "📁 Categories & Cuisine",
+    text: "Create and organize Main Categories and Subcategories.",
+    badge: "Taxonomy",
+  },
+  {
+    to: "/admin/orders",
+    title: "📦 Customer Orders",
+    text: "Track live incoming orders, assign status & handle refunds.",
+    badge: "Operations",
+  },
+  {
+    to: "/admin/restaurants",
+    title: "🏪 Restaurant Partners",
+    text: "Manage partner branches, ratings, and cuisines.",
+    badge: "Vendors",
+  },
+  {
+    to: "/admin/offers",
+    title: "🎁 Promo Offers & Coupons",
+    text: "Create discount promo codes and limited time deals.",
+    badge: "Marketing",
+  },
+  {
+    to: "/admin/users",
+    title: "👥 User Management",
+    text: "Manage registered customers and staff roles.",
+    badge: "Accounts",
+  },
+  {
+    to: "/admin/messages",
+    title: "✉️ Customer Inquiries",
+    text: "Review and respond to contact feedback & inquiries.",
+    badge: "Support",
+  },
 ];
 
-const currency = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+const currency = (value) =>
+  `₹${Number(value || 0).toLocaleString("en-IN")}`;
 
 function AdminDashboard() {
+ 
   const [stats, setStats] = useState(null);
   const [mainCategories, setMainCategories] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [userStatus, setUserStatus] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [statusError, setStatusError] = useState("");
+
   useEffect(() => {
     const loadDashboard = async () => {
       setLoading(true);
+
       try {
-        const [orders, users, foods, messages, mains, subs] = await Promise.all([
+        const [
+          orders,
+          users,
+          foods,
+          messages,
+          mains,
+          subs,
+        ] = await Promise.all([
           adminApiFetch("/orders"),
           adminApiFetch("/users"),
           adminApiFetch("/foods"),
@@ -35,28 +85,53 @@ function AdminDashboard() {
         ]);
 
         const orderList = orders || [];
+
         const revenue = orderList
-          .filter((order) => order.status !== "Cancelled")
-          .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+          .filter(
+            (order) => order.status !== "Cancelled"
+          )
+          .reduce(
+            (sum, order) =>
+              sum + (order.totalAmount || 0),
+            0
+          );
 
         setStats({
           orders: orderList.length,
+
           pendingOrders: orderList.filter((order) =>
-            ["Pending", "Preparing", "Out for Delivery"].includes(order.status)
+            [
+              "Pending",
+              "Preparing",
+              "Out for Delivery",
+            ].includes(order.status)
           ).length,
-          deliveredOrders: orderList.filter((order) => order.status === "Delivered").length,
+
+          deliveredOrders: orderList.filter(
+            (order) => order.status === "Delivered"
+          ).length,
+
           revenue,
-          users: (users || []).filter((u) => u.role !== "admin").length,
+
+          users: (users || []).filter(
+            (user) => user.role !== "admin"
+          ).length,
+
           foods: (foods || []).length,
           mainCategories: (mains || []).length,
           subCategories: (subs || []).length,
-          newMessages: (messages || []).filter((m) => m.status === "New").length,
+
+          newMessages: (messages || []).filter(
+            (message) => message.status === "New"
+          ).length,
         });
 
         setMainCategories(mains || []);
         setRecentOrders(orderList.slice(0, 5));
       } catch (err) {
-        setError(err.message || "Could not load dashboard data");
+        setError(
+          err.message || "Could not load dashboard data"
+        );
       } finally {
         setLoading(false);
       }
@@ -65,6 +140,28 @@ function AdminDashboard() {
     loadDashboard();
   }, []);
 
+  useEffect(() => {
+    const fetchUserStatus = async () => {
+      setStatusLoading(true);
+      setStatusError("");
+
+      try {
+        const data = await adminApiFetch("/users/Status");
+
+        setUserStatus(data);
+      } catch (err) {
+        setStatusError(
+          err.message || "Unable to load user status"
+        );
+      } finally {
+        setStatusLoading(false);
+      }
+    };
+
+    fetchUserStatus();
+  }, []);
+
+ 
   const metricCards = stats
     ? [
         {
@@ -112,37 +209,82 @@ function AdminDashboard() {
       ]
     : [];
 
+
+  const userStatusCards = userStatus
+    ? [
+        {
+          label: "Total Records",
+          value: userStatus.totalRecords,
+          icon: "👥",
+          sub: "Total registered customers",
+          accent: "metric-accent-blue",
+        },
+        {
+          label: "Active Records",
+          value: userStatus.activeRecords,
+          icon: "🟢",
+          sub: "Customers currently online",
+          accent: "metric-accent-green",
+        },
+        {
+          label: "Records Added Today",
+          value: userStatus.recordsAddedToday,
+          icon: "📅",
+          sub: "Customer accounts created today",
+          accent: "metric-accent-orange",
+        },
+      ]
+    : [];
+
   return (
     <div className="admin-page-container dashboard-page">
       {/* PAGE HEADER */}
       <div className="admin-view-header">
         <div className="view-title-block">
-          <div className="view-badge">STORE OPERATIONS</div>
+          <div className="view-badge">
+            STORE OPERATIONS
+          </div>
+
           <h1>Admin Control Center</h1>
+
           <p className="view-subtitle">
-            Welcome back! Here is a live overview of your food delivery store operations.
+            Welcome back! Here is a live overview of your
+            food delivery store operations.
           </p>
         </div>
 
         <div className="view-action-group">
-          <Link to="/admin/foods" className="admin-btn-primary">
+          <Link
+            to="/admin/foods"
+            className="admin-btn-primary"
+          >
             ➕ Add New Dish
           </Link>
-          <Link to="/admin/orders" className="admin-btn-secondary">
+
+          <Link
+            to="/admin/orders"
+            className="admin-btn-secondary"
+          >
             📦 Live Orders
           </Link>
-          <Link to="/admin/categories" className="admin-btn-secondary">
+
+          <Link
+            to="/admin/categories"
+            className="admin-btn-secondary"
+          >
             🗂️ Categories
           </Link>
         </div>
       </div>
 
+      {/* EXISTING DASHBOARD ERROR */}
       {error && (
         <div className="admin-alert-banner alert-error">
           <span>⚠️</span> {error}
         </div>
       )}
 
+      {/* EXISTING DASHBOARD LOADING */}
       {loading && (
         <div className="admin-loading-card">
           <div className="loading-spinner" />
@@ -150,37 +292,142 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* METRIC CARDS GRID */}
+      {/* EXISTING STORE METRIC CARDS */}
       {stats && (
         <div className="admin-kpi-grid">
           {metricCards.map((card) => (
-            <div className={`admin-kpi-card ${card.accent}`} key={card.label}>
+            <div
+              className={`admin-kpi-card ${card.accent}`}
+              key={card.label}
+            >
               <div className="kpi-card-header">
-                <span className="kpi-icon-bubble">{card.icon}</span>
-                <span className="kpi-live-tag">LIVE</span>
+                <span className="kpi-icon-bubble">
+                  {card.icon}
+                </span>
+
+                <span className="kpi-live-tag">
+                  LIVE
+                </span>
               </div>
+
               <div className="kpi-card-body">
-                <h2 className="kpi-value-text">{card.value}</h2>
-                <p className="kpi-label-text">{card.label}</p>
+                <h2 className="kpi-value-text">
+                  {card.value}
+                </h2>
+
+                <p className="kpi-label-text">
+                  {card.label}
+                </p>
               </div>
+
               <div className="kpi-card-footer">
-                <span className="kpi-sub-text">{card.sub}</span>
+                <span className="kpi-sub-text">
+                  {card.sub}
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* RECENT ORDERS & CATEGORIES 2-COLUMN SECTION */}
+      <section
+        className="admin-surface-card"
+        style={{ marginBottom: "24px" }}
+      >
+        <div className="widget-card-header">
+          <div>
+            <h2>📊 User Records Status</h2>
+
+            <p className="widget-card-desc">
+              Live customer registration and activity counts
+            </p>
+          </div>
+
+          <span className="kpi-live-tag">API DATA</span>
+        </div>
+
+        
+        {statusLoading && (
+          <div
+            className="admin-loading-card"
+            role="status"
+          >
+            <div className="loading-spinner" />
+            <p>Loading user status...</p>
+          </div>
+        )}
+
+       
+        {!statusLoading && statusError && (
+          <div
+            className="admin-alert-banner alert-error"
+            role="alert"
+          >
+            ⚠️ {statusError}
+          </div>
+        )}
+
+        {/* SUCCESS STATE */}
+        {!statusLoading &&
+          !statusError &&
+          userStatus && (
+            <div
+              className="admin-kpi-grid"
+              style={{ marginTop: "16px" }}
+            >
+              {userStatusCards.map((card) => (
+                <div
+                  className={`admin-kpi-card ${card.accent}`}
+                  key={card.label}
+                >
+                  <div className="kpi-card-header">
+                    <span className="kpi-icon-bubble">
+                      {card.icon}
+                    </span>
+
+                    <span className="kpi-live-tag">
+                      LIVE
+                    </span>
+                  </div>
+
+                  <div className="kpi-card-body">
+                    <h2 className="kpi-value-text">
+                      {card.value}
+                    </h2>
+
+                    <p className="kpi-label-text">
+                      {card.label}
+                    </p>
+                  </div>
+
+                  <div className="kpi-card-footer">
+                    <span className="kpi-sub-text">
+                      {card.sub}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+      </section>
+
+      {/* RECENT ORDERS & CATEGORIES */}
       <div className="dashboard-double-section">
-        {/* RECENT ORDERS FEED */}
+        {/* RECENT ORDERS */}
         <div className="admin-surface-card dashboard-widget-card">
           <div className="widget-card-header">
             <div>
               <h2>📦 Recent Customer Orders</h2>
-              <p className="widget-card-desc">Latest incoming orders across all food categories</p>
+
+              <p className="widget-card-desc">
+                Latest incoming orders across all food categories
+              </p>
             </div>
-            <Link to="/admin/orders" className="widget-header-link">
+
+            <Link
+              to="/admin/orders"
+              className="widget-header-link"
+            >
               View All Orders →
             </Link>
           </div>
@@ -192,17 +439,33 @@ function AdminDashboard() {
           ) : (
             <div className="recent-orders-feed-list">
               {recentOrders.map((order) => {
-                const statusClass = `badge-status-${(order.status || "").toLowerCase().replace(/\s+/g, "-")}`;
+                const statusClass =
+                  `badge-status-${(order.status || "")
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")}`;
+
                 return (
-                  <div className="recent-order-card-row" key={order._id}>
+                  <div
+                    className="recent-order-card-row"
+                    key={order._id}
+                  >
                     <div className="order-row-col-main">
                       <div className="order-id-badge">
-                        #{order._id ? order._id.slice(-6).toUpperCase() : "ORDER"}
+                        #
+                        {order._id
+                          ? order._id.slice(-6).toUpperCase()
+                          : "ORDER"}
                       </div>
+
                       <div className="order-cust-info">
-                        <strong>{order.user?.name || "Guest Customer"}</strong>
+                        <strong>
+                          {order.user?.name || "Guest Customer"}
+                        </strong>
+
                         <span>
-                          {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                          {new Date(
+                            order.createdAt
+                          ).toLocaleDateString("en-IN", {
                             month: "short",
                             day: "numeric",
                             hour: "2-digit",
@@ -213,12 +476,22 @@ function AdminDashboard() {
                     </div>
 
                     <div className="order-row-items-preview">
-                      {(order.items || []).map((it) => `${it.name} (x${it.quantity})`).join(", ")}
+                      {(order.items || [])
+                        .map(
+                          (item) =>
+                            `${item.name} (x${item.quantity})`
+                        )
+                        .join(", ")}
                     </div>
 
                     <div className="order-row-col-end">
-                      <strong className="order-amount-text">₹{order.totalAmount}</strong>
-                      <span className={`admin-status-badge ${statusClass}`}>
+                      <strong className="order-amount-text">
+                        ₹{order.totalAmount}
+                      </strong>
+
+                      <span
+                        className={`admin-status-badge ${statusClass}`}
+                      >
                         {order.status}
                       </span>
                     </div>
@@ -229,14 +502,21 @@ function AdminDashboard() {
           )}
         </div>
 
-        {/* MAIN CATEGORIES OVERVIEW */}
+        {/* MAIN CATEGORIES */}
         <div className="admin-surface-card dashboard-widget-card">
           <div className="widget-card-header">
             <div>
               <h2>🗂️ Cuisine &amp; Category Breakdown</h2>
-              <p className="widget-card-desc">Registered primary food dietary groups</p>
+
+              <p className="widget-card-desc">
+                Registered primary food dietary groups
+              </p>
             </div>
-            <Link to="/admin/categories" className="widget-header-link">
+
+            <Link
+              to="/admin/categories"
+              className="widget-header-link"
+            >
               Manage All →
             </Link>
           </div>
@@ -247,13 +527,22 @@ function AdminDashboard() {
             </div>
           ) : (
             <div className="category-metric-chips-grid">
-              {mainCategories.map((m) => (
-                <div className="dashboard-cat-chip" key={m._id}>
-                  <div className="cat-chip-icon">{m.icon || "🍽️"}</div>
+              {mainCategories.map((category) => (
+                <div
+                  className="dashboard-cat-chip"
+                  key={category._id}
+                >
+                  <div className="cat-chip-icon">
+                    {category.icon || "🍽️"}
+                  </div>
+
                   <div className="cat-chip-text">
-                    <strong className="cat-chip-title">{m.name}</strong>
+                    <strong className="cat-chip-title">
+                      {category.name}
+                    </strong>
+
                     <span className="cat-chip-count">
-                      {m.subCategoryCount || 0} Subcategories
+                      {category.subCategoryCount || 0} Subcategories
                     </span>
                   </div>
                 </div>
@@ -268,19 +557,37 @@ function AdminDashboard() {
         <div className="widget-card-header">
           <div>
             <h2>⚡ Quick Management Hub</h2>
-            <p className="widget-card-desc">Jump straight to key management modules</p>
+
+            <p className="widget-card-desc">
+              Jump straight to key management modules
+            </p>
           </div>
         </div>
 
         <div className="quick-links-cards-grid">
           {QUICK_LINKS.map((link) => (
-            <Link to={link.to} className="quick-link-nav-card" key={link.to}>
+            <Link
+              to={link.to}
+              className="quick-link-nav-card"
+              key={link.to}
+            >
               <div className="quick-link-card-top">
-                <span className="quick-link-tag">{link.badge}</span>
-                <span className="quick-link-arrow">→</span>
+                <span className="quick-link-tag">
+                  {link.badge}
+                </span>
+
+                <span className="quick-link-arrow">
+                  →
+                </span>
               </div>
-              <h3 className="quick-link-title">{link.title}</h3>
-              <p className="quick-link-desc">{link.text}</p>
+
+              <h3 className="quick-link-title">
+                {link.title}
+              </h3>
+
+              <p className="quick-link-desc">
+                {link.text}
+              </p>
             </Link>
           ))}
         </div>

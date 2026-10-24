@@ -349,6 +349,45 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+const getUserStatus = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [totalRecords, activeRecords, recordsAddedToday] =
+      await Promise.all([
+        User.countDocuments({ role: "user" }),
+
+        User.countDocuments({
+          role: "user",
+          isOnline: true,
+        }),
+
+        User.countDocuments({
+          role: "user",
+          createdAt: {
+            $gte: today,
+            $lt: tomorrow,
+          },
+        }),
+      ]);
+
+    res.status(200).json({
+      totalRecords,
+      activeRecords,
+      recordsAddedToday,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch user status",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -360,4 +399,5 @@ module.exports = {
   getAllUsers,
   updateUser,
   deleteUser,
+  getUserStatus,
 };
